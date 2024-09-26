@@ -6298,7 +6298,7 @@ class digraphPlot(tk.Canvas, tk.Frame):
         
         new_graph = subgraph.copy()
         
-        adjacency_matrix = nx.adjacency_matrix(new_graph, nodelist = self._digraph_normal.nodes, weight='weight')
+        adjacency_matrix = nx.adjacency_matrix(new_graph, nodelist = new_graph.nodes, weight='weight')
         adjacency_matrix_array = adjacency_matrix.toarray()
         self._adjacency_matrix = adjacency_matrix_array
       
