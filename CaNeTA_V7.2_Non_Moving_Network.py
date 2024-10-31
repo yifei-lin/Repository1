@@ -714,6 +714,7 @@ class digraphPlot(tk.Canvas, tk.Frame):
         self._entry_1.focus_set()
         self._buttonEntry_1 = tk.Button(self._frame_two, text="Subgraph_causal_scenarios", width=100)
         self._buttonEntry_1.bind("<Button-1>", lambda evt: self.get_causal_consequence_subgraph())
+        
         self._buttonEntry_1.pack()
         button_community = Button( self._frame_two , text = "Community", command = self.community, width=100).pack()
         button_granularity = Button( self._frame_two , text = "Granularity", command = self.Granularity, width=100).pack()
@@ -728,6 +729,7 @@ class digraphPlot(tk.Canvas, tk.Frame):
         button_find_optimal = Button( self._frame_two , text = "Start Optimal", command = self.start_optimal, width=100).pack()
         button_toy_network = Button( self._frame_two , text = "Toy network", command = self.toy_network_abstraction, width=100).pack()
         button_interacitve_network = Button( self._frame_two , text = "interactive_network", command = self.interactive_network, width=100).pack()
+        button_all_pathway = Button( self._frame_two , text = "all_causal_pathway", command = self.get_causal_consequence_subgraph, width=100).pack()
         self._largest_component = []
         self._deleted_node = []
         self._node_neighbor = self.neighbor_of_nodes()
@@ -6496,6 +6498,46 @@ class digraphPlot(tk.Canvas, tk.Frame):
             row1 += 1
             col1 = 0
         workbook.close()
+        
+        
+
+    def get_causal_consequence_subgraph(self):
+        """Extract all the pathways (directed) from all zero in-degree nodes to all zero out-degree nodes."""
+        
+        # Identifying source nodes (zero in-degree)
+        source_nodes = [node for node in self._digraph_normal.nodes() if self._digraph_normal.in_degree(node) == 0]
+    
+        # Identifying sink nodes (zero out-degree)
+        sink_nodes = [node for node in self._digraph_normal.nodes() if self._digraph_normal.out_degree(node) == 0]
+    
+        # Find all paths from source nodes to sink nodes
+        all_paths = []
+        paths_info = []  # To store tuple of (source, sink, path)
+        for source in source_nodes:
+            for sink in sink_nodes:
+                paths = list(nx.all_simple_paths(self._digraph_normal, source=source, target=sink))
+                for path in paths:
+                    all_paths.append(path)
+                    path_str = ' -> '.join(map(str, path))  # Convert path list to a string for easy reading
+                    paths_info.append((source, sink, path_str))
+    
+        # Open a workbook and add a worksheet
+        workbook = xlsxwriter.Workbook('all_causal_pathway.xlsx')
+        worksheet = workbook.add_worksheet('Paths Info')
+    
+        # Add headers
+        worksheet.write(0, 0, 'Source')
+        worksheet.write(0, 1, 'Sink')
+        worksheet.write(0, 2, 'Path')
+    
+        # Write data to worksheet
+        for row_num, (source, sink, path_str) in enumerate(paths_info, start=1):
+            worksheet.write(row_num, 0, str(source))
+            worksheet.write(row_num, 1, str(sink))
+            worksheet.write(row_num, 2, path_str)
+    
+        workbook.close()
+        print('Excel file saved with paths information.')
 
 if __name__ == "__main__":
     ##plot initial digraph
